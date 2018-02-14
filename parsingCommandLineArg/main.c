@@ -1,48 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
+#include "parse.h"
 #include <sys/types.h>
 #include <unistd.h>
 
-int length(char* array) {
-  int i = 0, length = 0;
-  while (array[i] != NULL) {
-    length++;
-    i++;
-  }
-  return length;
-}
-
-char* copyArray (char* original) {
-  int size = length(original);
-  char* copy = calloc(size, sizeof(char));
-  for (int i = 0; i < size; i++) {
-    copy[i] = original[i];
-  }
-  assert(copy != NULL);
-  return copy;
-}
-
-int execute(char* prog, char* command) {
+int execute(char** arguments) {
   pid_t pid, wpid;
   int status;
 
   pid = fork();
   // Now two processes: current and child
+  char** arr = calloc(1, sizeof(char*));
+  arr[0] = calloc(2, sizeof(char));
+  arr[0][0] = 'l';
+  arr[0][1] = 's';
   if (pid == 0) {
     // Child process
-
-//    if (execl(getenv("PATH"), "-c", "ls", (const char *)0)) {
-//      perror("lsh");
-//    }
-//    if (execve(getenv("PATH"), command, 0)) {
-//      perror("lsh");
-//    }
-    char** arr = calloc(1, sizeof(char*));
-    assert(arr != NULL);
-    arr[0] = command;
-
-    if (execvp(prog, arr)) {
+    if (execvp(arguments[0], arguments) == -1) {
       perror("lsh");
     }
     exit(EXIT_FAILURE);
@@ -58,19 +34,34 @@ int execute(char* prog, char* command) {
 
   return 1;
 }
-
 int main(int argc, char **argv) {
 //  Read
+  char *line;
+  char **args;
+  int status = 1;
 
-  printf("%d\n", argc);
-  char* command = copyArray(argv[1]);
+  do {
+    printf("$ ");
+    line = read_line();
+    printf("%s\n", line);
+    args = split_line(line);
+    status = execute(args);
 
-  // pass the program and the command to execute
-  execute(argv[0], command);
-  free(command);
-
-//  Parse
-//  Execute
+//    if (strcmp(args[0], "execute")) {
+//      int size = 1;
+//      char** command = malloc(size*sizeof(char));
+//      for (int i = 0; args[i+1] != NULL ; i++) {
+//        command[i] = args[i+1];
+//        size++;
+//        realloc(command, size * sizeof(char));
+//        status = execute(args);
+//      }
+//    } else {
+//      printf("");
+//      break;
+//    }
+    free(line);
+    free(args);
+  } while (status);
   return 0;
-
 }
