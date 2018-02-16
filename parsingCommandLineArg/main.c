@@ -43,19 +43,12 @@ int main(int argc, char **argv) {
   do {
     printf("$ ");
     line = read_line();
-    printf("%s\n", line);
     args = split_line(line);
 //    status = execute(args);
-    if (strcmp(args[0], "execute ")) {
-//      int size = 1;
-//      char** command = malloc(size*sizeof(char));
-//      for (int i = 0; args[i+1] != NULL ; i++) {
-//        command[i] = args[i+1];
-//        size++;
-//        realloc(command, size * sizeof(char));
-        status = execute(args+1);
+    if (strcmp(args[0], "execute") == 0) {
+      status = execute(args+1);
     } else {
-      printf("xxx");
+      printf("incorrect command");
       status = 0;
     }
     free(line);
