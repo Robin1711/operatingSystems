@@ -79,10 +79,7 @@ char** split_line(char *line) {
     if (position >= bufsize) {
       bufsize += LSH_TOK_BUFSIZE;
       tokens = realloc(tokens, bufsize * sizeof(char*));
-      if (!tokens) {
-        fprintf(stderr, "lsh: allocation error\n");
-        exit(EXIT_FAILURE);
-      }
+      assert(tokens != NULL);
     }
 
     token = strtok(NULL, " ");

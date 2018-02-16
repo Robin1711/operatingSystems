@@ -12,10 +12,10 @@ int execute(char** arguments) {
 
   pid = fork();
   // Now two processes: current and child
-  char** arr = calloc(1, sizeof(char*));
-  arr[0] = calloc(2, sizeof(char));
-  arr[0][0] = 'l';
-  arr[0][1] = 's';
+//  char** arr = calloc(1, sizeof(char*));
+//  arr[0] = calloc(2, sizeof(char));
+//  arr[0][0] = 'l';
+//  arr[0][1] = 's';
   if (pid == 0) {
     // Child process
     if (execvp(arguments[0], arguments) == -1) {
@@ -45,21 +45,19 @@ int main(int argc, char **argv) {
     line = read_line();
     printf("%s\n", line);
     args = split_line(line);
-    status = execute(args);
-
-//    if (strcmp(args[0], "execute")) {
+//    status = execute(args);
+    if (strcmp(args[0], "execute ")) {
 //      int size = 1;
 //      char** command = malloc(size*sizeof(char));
 //      for (int i = 0; args[i+1] != NULL ; i++) {
 //        command[i] = args[i+1];
 //        size++;
 //        realloc(command, size * sizeof(char));
-//        status = execute(args);
-//      }
-//    } else {
-//      printf("");
-//      break;
-//    }
+        status = execute(args+1);
+    } else {
+      printf("xxx");
+      status = 0;
+    }
     free(line);
     free(args);
   } while (status);
