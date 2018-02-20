@@ -19,7 +19,7 @@ int execute(char** arguments) {
   if (pid == 0) {
     // Child process
     if (execvp(arguments[0], arguments) == -1) {
-      perror("lsh");
+      printf("execute: command %s not found\n", arguments[0]);
     }
     exit(EXIT_FAILURE);
   } else if (pid < 0) {

@@ -43,7 +43,7 @@ char* read_line() {
 
   while (TRUE) {
     c = getchar();
-    if (c == '"') continue;
+    if (c == '""') continue;
     if (c == '\n' || c == EOF) {
       if (position > bufferSize-1) {
         bufferSize++;
