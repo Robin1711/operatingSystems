@@ -7,40 +7,57 @@
 #include <dirent.h>
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
 
-void listdir(char *argv) {
-  DIR *mydirhandle;
-  struct dirent *mydirent;
+#include "duplicate.h"
 
-//  for (int i = 0; argv[i] != '\0'; i ++) {
-//    printf("%c\n", argv[i]);
-//  }
-  printf("\nTrying to open %s\n", argv);
-  if ((mydirhandle = opendir(argv)) == NULL) {
-    perror("opendir ");
-    exit(1);
-  }
-  printf("%s/\n", argv);
-  while ((mydirent = readdir(mydirhandle)) != NULL) {
-    if ((strcmp(mydirent->d_name, ".") == 0)
-        || (strcmp(mydirent->d_name, "..") == 0)
-        || mydirent->d_name[0] == '.') {
-      continue;
-    } else {
-      printf("\t%s\n", mydirent->d_name);
+file createFile(char *fpath, char *fname) {
+  file f = malloc(sizeof(struct filedata));
+  f->size = NULL;
+//  int length = (int)sizeof(fpath) + (int)strlen(fname);
+//  (*newFile)->path = malloc(length * sizeof(char));
+  strcpy(f->path, fpath);
+  strcat(f->path, "/");
+  strcat(f->path, fname);
 
-      //check if next entry is a directory
-      if (mydirent->d_type == DT_DIR) {
-        int size = (int)sizeof(argv) + (int)sizeof(char) + mydirent->d_namlen;
-        char *x = malloc(size*sizeof(char));
-        strcpy(x, argv);
-        strcat(x, "/");
-        strcat(x, mydirent->d_name);
-        listdir(x);
+  FILE *fp = fopen(f->path, "r");
+  fseek(fp, 0, SEEK_END);
+  f->size = ftell(fp);
+  fclose(fp);
+
+  return f;
+}
+
+void traverse(char *fn, int indent, file *files, int *curPos, int size) {
+  DIR *dir;
+  struct dirent *entry;
+  char path[1025];
+  struct stat info;
+  if ((dir = opendir(fn)) == NULL)
+    perror("opendir() error");
+  else {
+    while ((entry = readdir(dir)) != NULL) {
+      if (entry->d_name[0] != '.') {
+        strcpy(path, fn);
+        strcat(path, "/");
+        strcat(path, entry->d_name);
+        if (stat(path, &info) != 0) {
+          fprintf(stderr, "stat() error on %s: %s\n", path,
+                  strerror(errno));
+        } else if (S_ISDIR(info.st_mode)) {
+          traverse(path, indent + 1, files, curPos, size);
+        } else if (S_ISREG(info.st_mode)) {
+//          file* files = malloc(8 * sizeof(file));
+          file f = createFile(fn, entry->d_name);
+          printf("%d\n", *curPos);
+          files[*curPos] = f;
+          (*curPos)++;
+          printf("%*s %s\n", indent, "", entry->d_name);
+        }
       }
     }
+    closedir(dir);
   }
-  closedir(mydirhandle);
 }
 
 int main(int argc, char *argv[]) {
@@ -48,7 +65,14 @@ int main(int argc, char *argv[]) {
     printf("usage: %s <directory>\n", argv[0]);
     return 0;
   }
-
-  listdir(argv[1]);
+  printf("%s\n", argv[1]);
+  int size = 8;
+  int position = 0;
+  file *files = malloc(size * sizeof(file));
+  traverse(argv[1], 0, files, &position , size);
+  for (int i = 0; i < position; i++) {
+    printf("%s => ", files[i]->path);
+    printf("%ld\n", files[i]->size);
+  }
   return 0;
 }

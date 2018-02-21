@@ -19,8 +19,7 @@ void traverse(char *fn, int indent) {
   char path[1025];
   struct stat info;
 
-  //for (count=0; count<indent; count++) printf("  ");
-  printf("%s\n", fn);
+  printf("%*s %s\n", indent, "", fn);
 
   if ((dir = opendir(fn)) == NULL)
     perror("opendir() error");
@@ -41,7 +40,16 @@ void traverse(char *fn, int indent) {
   }
 }
 
-main() {
+int main(int argc, char *argv[]) {
+  if (argc != 2) {
+    printf("usage: %s <directory>\n", argv[0]);
+    return 0;
+  }
   puts("Directory structure:");
-  traverse("/home/s2696320/Documents/operatingSystems", 0);
+  traverse(argv[1], 0);
+  return 0;
 }
+//main() {
+//  puts("Directory structure:");
+//  traverse("/home/s2696320/Documents/operatingSystems", 0);
+//}
