@@ -1,21 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include "parse.h"
-#include <sys/types.h>
 #include <unistd.h>
 
+// Execute executes the command in arguments[0] with the flags arguments[1..n]
 int execute(char** arguments) {
   pid_t pid, wpid;
   int status;
 
   pid = fork();
-  // Now two processes: current and child
-//  char** arr = calloc(1, sizeof(char*));
-//  arr[0] = calloc(2, sizeof(char));
-//  arr[0][0] = 'l';
-//  arr[0][1] = 's';
   if (pid == 0) {
     // Child process
     if (execvp(arguments[0], arguments) == -1) {
@@ -35,24 +29,27 @@ int execute(char** arguments) {
   return 1;
 }
 int main(int argc, char **argv) {
-//  Read
   char *line;
   char **args;
   int status = 1;
 
+  // Jump into virtual minimal shell
   do {
     printf("$ ");
+    // Read the line and split it into arguments, which will be given to the function execute
     line = read_line();
     args = split_line(line);
-//    status = execute(args);
     if (strcmp(args[0], "execute") == 0) {
       status = execute(args+1);
-    } else {
-      printf("incorrect command");
+    } else if (strcmp(args[0], "exit") == 0) {
+      printf("leaving commandline");
       status = 0;
+    } else {
+      printf("incorrect command\n");
     }
     free(line);
     free(args);
   } while (status);
+
   return 0;
 }

@@ -4,29 +4,22 @@
 
 #define TRUE 1
 #define FALSE 0
+#define WRITE 1
+#define READ 0
 
-void doChildAction(int totalChildren, int child, int* p) {
+// As long as necesary, the child reads, prints and writes the sum.
+void action(int totalChildren, int child, int p[][2]) {
   int sum = 0;
-  while(TRUE) {
+  int neighbour = (child + 1) % totalChildren;
+  while (sum - 1 + totalChildren <= 50) {
     // read from pipe
-    int bytesread = read(p[0], &sum, sizeof(int));
+    int bytesread = read(p[child][READ], &sum, sizeof(int));
     if (bytesread != sizeof(int)) printf("Bytes read != sizeof(int) -> %d != %d", bytesread, sizeof(int));
 
-    // decide whether to continue or not
-    if (sum > 50) {
-      int bytesWritten = write (p[1], &sum, sizeof(int));
-      if (bytesWritten != sizeof(int)) printf("Bytes written != sizeof(int) -> %d != %d", bytesWritten, sizeof(int));
-      return;
-    }
-
-    // check whether it is our turn to print and increment
-    if(sum % totalChildren == child) {
-      printf("pid=%d: %d\n", getpid(), sum);
-      sum++;
-    }
-
-    // write the result back
-    int bytesWritten = write (p[1], &sum, sizeof(int));
+    // print and writ to pipe from neighbour
+    printf("pid=%d: %d\n", getpid(), sum);
+    sum++;
+    int bytesWritten = write(p[neighbour][WRITE], &sum, sizeof(int));
     if (bytesWritten != sizeof(int)) printf("Bytes written != sizeof(int) -> %d != %d", bytesWritten, sizeof(int));
   }
 }
@@ -34,33 +27,39 @@ void doChildAction(int totalChildren, int child, int* p) {
 void performRing(int n) {
   pid_t pid[n], wpid;
   int status;
-  int p[2];
+  int p[n][2];
   pid_t parentpid = getpid();
 
-  // parent initializes the pipe
-  if(pipe(p) < 0) {
-    perror("pipe error.");
-    exit(1);
+  // Parent initializes the pipe
+  for (int i = 0; i < n; i++) {
+    if (pipe(p[i]) < 0) {
+      perror("pipe error.");
+      exit(1);
+    }
   }
+  // Parent writes initial value for first child
   int sum = 0;
-  int bytesWritten = write (p[1], &sum, sizeof(int));
+  int bytesWritten = write(p[0][WRITE], &sum, sizeof(int));
   if (bytesWritten != sizeof(int)) printf("Bytes written != sizeof(int) -> %d != %d", bytesWritten, sizeof(int));
 
-  // fork children
-  for (int i=0; i<n; i++) {
+  // Fork children
+  for (int i = 0; i < n; i++) {
     pid[i] = fork();
     if (pid[i] == 0) {
-      doChildAction(n, i, p);
+      action(n, i, p);
       exit(1);
     } else if (pid < 0) {
       perror("lsh");
     }
   }
 
-  if(getpid() == parentpid) {
-    for (int i=0; i<n; i++) {
-      wpid = waitpid(pid[i], &status, WUNTRACED);
-    }
+  // Parent waits for all children to finish and closes the pipes
+  for (int i = 0; i < n; i++) {
+    wpid = waitpid(pid[i], &status, WUNTRACED);
+  }
+  for (int i = 0; i < n; i++) {
+    close(p[i][READ]);
+    close(p[i][WRITE]);
   }
 }
 

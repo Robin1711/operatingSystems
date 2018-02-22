@@ -4,37 +4,11 @@
 #include "parse.h"
 #include <string.h>
 
-#define INIT_BUFFER_SIZE 4
 #define FALSE 0
 #define TRUE 1
+#define LSH_TOK_BUFSIZE 64
 
-void free2Darray(int **ar, int rows){
-  int row;
-  for(row=0; row<rows; row++){
-    free(ar[row]);
-  }
-  free(ar);
-}
-
-char **allocate2Darray(int rows, int columns){
-  char **new;
-  int row;
-  new = calloc(rows,sizeof(char*));
-  assert(new != NULL);
-  for(row=0; row<rows; row++){
-    new[row] = calloc(columns,sizeof(char));
-    assert(new[row] != NULL);
-  }
-  return new;
-}
-
-char *read_line_simple() {
-  char *line = NULL;
-  ssize_t bufsize = 0; // have getline allocate a buffer for us
-  getline(&line, &bufsize, stdin);
-  return line;
-}
-
+// Reads the line of the commandline and returns a string
 char* read_line() {
   int bufferSize = 4;
   char* buffer = malloc(bufferSize* sizeof(char));
@@ -43,7 +17,7 @@ char* read_line() {
 
   while (TRUE) {
     c = getchar();
-    if (c == '""') continue;
+    if (c == '"') continue;
     if (c == '\n' || c == EOF) {
       if (position > bufferSize-1) {
         bufferSize++;
@@ -63,8 +37,7 @@ char* read_line() {
   return buffer;
 }
 
-#define LSH_TOK_BUFSIZE 64
-#define LSH_TOK_DELIM " \t\r\n\a"
+// Splits the line on spaces, and puts the multiple strings into an array of strings.
 char** split_line(char *line) {
   int bufsize = LSH_TOK_BUFSIZE, position = 0;
   assert(bufsize != NULL);

@@ -5,10 +5,10 @@ typedef struct filedata *file;
 
 typedef struct filedata {
   long size;
-  char path[1024];
+  char* path;
 };
 
 void singledir(char *argv);
-void traverse(char *fn, int indent, file* files, int* curPos, int size);
+void collectFiles(char *folderName, file *files, int *curPos, int *size);
 
 #endif //DUPLICATE_DUPLICATE_H
