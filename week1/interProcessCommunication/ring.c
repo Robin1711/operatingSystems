@@ -14,13 +14,13 @@ void action(int totalChildren, int child, int p[][2]) {
   while (sum - 1 + totalChildren <= 50) {
     // read from pipe
     int bytesread = read(p[child][READ], &sum, sizeof(int));
-    if (bytesread != sizeof(int)) printf("Bytes read != sizeof(int) -> %d != %d", bytesread, sizeof(int));
+    if (bytesread != sizeof(int)) printf("Bytes read != sizeof(int) -> %d != %lu", bytesread, sizeof(int));
 
     // print and writ to pipe from neighbour
     printf("pid=%d: %d\n", getpid(), sum);
     sum++;
     int bytesWritten = write(p[neighbour][WRITE], &sum, sizeof(int));
-    if (bytesWritten != sizeof(int)) printf("Bytes written != sizeof(int) -> %d != %d", bytesWritten, sizeof(int));
+    if (bytesWritten != sizeof(int)) printf("Bytes written != sizeof(int) -> %d != %lu", bytesWritten, sizeof(int));
   }
 }
 
@@ -40,7 +40,7 @@ void performRing(int n) {
   // Parent writes initial value for first child
   int sum = 0;
   int bytesWritten = write(p[0][WRITE], &sum, sizeof(int));
-  if (bytesWritten != sizeof(int)) printf("Bytes written != sizeof(int) -> %d != %d", bytesWritten, sizeof(int));
+  if (bytesWritten != sizeof(int)) printf("Bytes written != sizeof(int) -> %d != %lu", bytesWritten, sizeof(int));
 
   // Fork children
   for (int i = 0; i < n; i++) {

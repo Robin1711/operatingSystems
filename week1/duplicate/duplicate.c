@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include "duplicate.h"
+
 #define TRUE 1
 #define FALSE 0
 
@@ -18,7 +19,7 @@ file createFile(char *fpath, char *fname) {
   file f = malloc(sizeof(struct filedata));
 
   // Get the path of the given file (Add one more to the length for the terminating character)
-  int length = (int)strlen(fpath) + (int)strlen(fname) + 1;
+  int length = (int) strlen(fpath) + (int) strlen(fname) + 1;
   f->path = malloc(length * sizeof(char));
   strcpy(f->path, fpath);
   strcat(f->path, fname);
@@ -73,9 +74,9 @@ int compareFiles(file f1, file f2) {
   long lSize1 = f1->size;
   long lSize2 = f2->size;
 
-  FILE *pFile1,*pFile2;
-  pFile1 = fopen(f1->path,"r");
-  pFile2 = fopen(f2->path,"r");
+  FILE *pFile1, *pFile2;
+  pFile1 = fopen(f1->path, "r");
+  pFile2 = fopen(f2->path, "r");
 
   char tmp1, tmp2;
   for (int i = 0; i < lSize1; i++) {
@@ -94,27 +95,26 @@ int compareFiles(file f1, file f2) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    printf("usage: %s <directory>\n", argv[0]);
-    return 0;
-  }
+  char path[1024];
+  if (getcwd(path, sizeof(path)) == NULL) perror("getcwd() error");
+  strcat(path, "/");
 
   // Define size and allocate the array in which the files are stored.
   int size = 2000;
   int elements = 0;
-  file* files = malloc(size * sizeof(struct filedata));
+  file *files = malloc(size * sizeof(struct filedata));
   assert(files != NULL);
-  collectFiles(argv[1], files, &elements, &size);
+  collectFiles(path, files, &elements, &size);
 
   // Compare all files on size. If the size is equal, compare the contents
   for (int i = 0; i < elements; i++) {
     if (files[i] == NULL) continue;
-    for (int j = i+1; j < elements; j++) {
+    for (int j = i + 1; j < elements; j++) {
       if (files[i]->size == files[j]->size) {
         if (compareFiles(files[i], files[j])) {
-          for (int c = (int)strlen(argv[1]); c < (int)strlen(files[i]->path); c++) printf("%c", files[i]->path[c]);
+          for (int c = (int) strlen(path); c < (int) strlen(files[i]->path); c++) printf("%c", files[i]->path[c]);
           printf(" and ");
-          for (int c = (int)strlen(argv[1]); c < (int)strlen(files[j]->path); c++) printf("%c", files[j]->path[c]);
+          for (int c = (int) strlen(path); c < (int) strlen(files[j]->path); c++) printf("%c", files[j]->path[c]);
           printf(" are the same file\n");
         }
       }

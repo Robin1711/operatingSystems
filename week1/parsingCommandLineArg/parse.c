@@ -39,8 +39,8 @@ char* read_line() {
 
 // Splits the line on spaces, and puts the multiple strings into an array of strings.
 char** split_line(char *line) {
-  int bufsize = LSH_TOK_BUFSIZE, position = 0;
-  assert(bufsize != NULL);
+  int bufsize = LSH_TOK_BUFSIZE;
+  int position = 0;
   char **tokens = malloc(bufsize * sizeof(char*));
   char *token;
 

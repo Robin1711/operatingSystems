@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     if (strcmp(args[0], "execute") == 0) {
       status = execute(args+1);
     } else if (strcmp(args[0], "exit") == 0) {
-      printf("leaving commandline");
+      printf("leaving commandline\n");
       status = 0;
     } else {
       printf("incorrect command\n");
