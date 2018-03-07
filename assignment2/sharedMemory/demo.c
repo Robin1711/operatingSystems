@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
-//#include <malloc.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/mman.h>
