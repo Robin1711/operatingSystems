@@ -27,7 +27,10 @@ int executeRedirect(char *command, char *fromfile, char *tofile) {
     }
 
     close(STDOUT_FILENO);
-    fd = open(tofile, O_WRONLY | O_CREAT | O_TRUNC, 644);
+//    fd = open(tofile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    int oflags = O_WRONLY | O_CREAT | O_TRUNC;
+    fd = open(tofile, oflags, mode);
     if (fd == -1) {
       printf("%s", strerror(errno));
       exit(fd);
