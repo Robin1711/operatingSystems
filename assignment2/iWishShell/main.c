@@ -4,23 +4,64 @@
 #include "parse.h"
 #include <unistd.h>
 
-// Execute executes the command in arguments[0] with the flags arguments[1..n]
-int execute(char** arguments) {
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+
+// With background process, put ouput in > /dev/null
+// a.out < in > out
+
+int executeRedirect(char *command, char *fromfile, char *tofile) {
   pid_t pid, wpid;
   int status;
-  char path[1024]; //Path to file
-  if (getcwd(path, sizeof(path)) == NULL) perror("getcwd() error");
-  strcat(path, "/");
-  strcat(path, arguments[0]);
 
-  printf("%s\n", path);
-  strcat(path,"/");
-  strcat(path, arguments[0]);
-  if (getcwd(path, sizeof(path)) == NULL) perror("getcwd() error");
   pid = fork();
   if (pid == 0) {
     // Child process
-    if (execv(path, arguments) == -1) {
+    close(STDIN_FILENO);
+    int fd = open(fromfile, O_RDONLY);
+    if (fd == -1) {
+      printf("%s", strerror(errno));
+      exit(fd);
+    }
+
+    close(STDOUT_FILENO);
+    fd = open(tofile, O_WRONLY | O_CREAT | O_TRUNC, 644);
+    if (fd == -1) {
+      printf("%s", strerror(errno));
+      exit(fd);
+    }
+
+//    close(STDOUT_FILENO);
+//    dup(output_pipe[1]);
+
+    if (execvp(command, NULL) == -1) {
+      printf("execute: command %s not found\n", command);
+    }
+    exit(EXIT_FAILURE);
+  } else if (pid < 0) {
+    // Error forking
+    perror("lsh");
+  } else {
+    // Parent process
+    do {
+      wpid = waitpid(pid, &status, WUNTRACED);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  }
+
+  return 1;
+}
+
+// Execute executes the command in arguments[0] with the flags arguments[1..n]
+int execute(char **arguments) {
+  pid_t pid, wpid;
+  int status;
+
+  pid = fork();
+  if (pid == 0) {
+    // Child process
+    if (execvp(arguments[0], arguments) == -1) {
       printf("execute: command %s not found\n", arguments[0]);
     }
     exit(EXIT_FAILURE);
@@ -36,11 +77,26 @@ int execute(char** arguments) {
 
   return 1;
 }
+
+void sigHandler(int sig) {
+//  printf("\nsigHandler called\n");
+  int status;
+  if (sig == SIGCHLD) {
+    do {
+      wait(&status);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  } else {
+    printf("Unfamiliar signal\n");
+    exit(sig);
+  }
+}
+
 int main(int argc, char **argv) {
   char path[1024];
   if (getcwd(path, sizeof(path)) == NULL) perror("getcwd() error");
   strcat(path, "/");
 
+//  signal(SIGCHLD, sigHandler);
   char *line;
   char **args;
   int status = 1;
@@ -56,7 +112,8 @@ int main(int argc, char **argv) {
       printf("leaving commandline\n");
       status = 0;
     } else {
-      status = execute(args);
+//      status = execute(args);
+      status = executeRedirect(args[0], args[1], args[2]);
     }
     free(line);
     free(args);
