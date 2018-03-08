@@ -2,6 +2,7 @@
 #define PARSINGCOMMANDLINEARG_PARSE_H
 
 char* read_line();
-char** split_line(char* line);
+//char** split_line(char* line);
+char** split_line(char* line, char* splitToken, int* length);
 
 #endif //PARSINGCOMMANDLINEARG_PARSE_H

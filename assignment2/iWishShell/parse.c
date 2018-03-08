@@ -39,14 +39,18 @@ char* read_line() {
 }
 
 // Splits the line on spaces, and puts the multiple strings into an array of strings.
-char** split_line(char *line) {
+//char** split_line(char *line) {
+char** split_line(char* line, char* splitToken, int* length) {
+  char* lineCopy = strdup(line);
   int bufsize = LSH_TOK_BUFSIZE;
   int position = 0;
   char **tokens = malloc(bufsize * sizeof(char*));
   char *token;
 
-  token = strtok(line, " ");
+  token = strtok(lineCopy, splitToken);
+  (*length) = 0;
   while (token != NULL) {
+    (*length)++;
     tokens[position] = token;
     position++;
 
@@ -56,7 +60,7 @@ char** split_line(char *line) {
       assert(tokens != NULL);
     }
 
-    token = strtok(NULL, " ");
+    token = strtok(NULL, splitToken);
   }
   tokens[position] = NULL;
   return tokens;
