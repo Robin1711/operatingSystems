@@ -116,6 +116,7 @@ int main(int argc, char *argv[]) {
 	sigaction(SIGSEGV, &sa, NULL);
 	sigaction(SIGNAL, &sa, NULL);
     procPingPong(0, p);
+    exit(1);
   }
   if ((pid_child1 = fork()) == 0) {
 	SIGNAL = SIGUSR2;
@@ -123,6 +124,7 @@ int main(int argc, char *argv[]) {
 	sigaction(SIGSEGV, &sa, NULL);
 	sigaction(SIGNAL, &sa, NULL);
     procPingPong(1, p);
+    exit(1);
   }
 
   waitpid(-1, &status, 0);
