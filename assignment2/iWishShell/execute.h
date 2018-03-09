@@ -7,9 +7,9 @@
 
 void setOutput(char* tofile);
 void setInput(char* fromfile);
-int executeBackground(char **arguments);
+int executeBackground(char* filePath, char **arguments);
 int executeRedirect(char *command, char *inputFile, char *outputFile);
-int execute(char* filePath, char **arguments);
+int execute(char **arguments, int numArgs);
 
 #endif //IWISHSHELL_EXECUTE_H
 

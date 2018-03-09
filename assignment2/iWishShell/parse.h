@@ -4,5 +4,6 @@
 char* read_line();
 //char** split_line(char* line);
 char** split_line(char* line, char* splitToken, int* length);
+int isBackGroundProcess(char** arguments, int numArgs);
 
 #endif //PARSINGCOMMANDLINEARG_PARSE_H

@@ -6,12 +6,12 @@
 
 #include "parse.h"
 #include "execute.h"
+#include "help.h"
 
 #define TRUE 1
 #define FALSE 0
 
 void sigHandler(int sig) {
-//  printf("\nsigHandler called\n");
   int status;
   if (sig == SIGCHLD) {
     do {
@@ -23,40 +23,9 @@ void sigHandler(int sig) {
   }
 }
 
-// filePath returns the path to a specified file
-// If the file does not exist, the function returns NULL
-char* filePath(char* file) {
-  // Gather all paths possible for the file to be in
-  char **searchPaths;
-  int length;
-  char* paths = getenv("PATH");
-
-  char extraPath[1024];
-  if (getcwd(extraPath, sizeof(extraPath)) == NULL) perror("getcwd() error");
-
-  strcat(paths, ":");
-  strcat(paths, extraPath);
-
-  searchPaths = split_line(paths, ":", &length);
-
-  // Check for all paths which path contains the file
-  char* fname = malloc (100 * sizeof(char));
-  for (int i = 0; i < length; i++) {
-    fname[0] = '\0';
-    strcat(fname, searchPaths[i]);
-    strcat(fname, "/");
-    strcat(fname, file);
-    if( access(fname, F_OK) != -1 ) {
-      return fname;
-    }
-  }
-  free(fname);
-  return NULL;
-}
-
 int main(int argc, char **argv) {
 
-  //  signal(SIGCHLD, sigHandler);
+  signal(SIGCHLD, sigHandler);
   char *line;
   char **args;
   int status = 1;
@@ -72,13 +41,9 @@ int main(int argc, char **argv) {
       printf("leaving commandline\n");
       status = 0;
     } else {
-      // args[0] is the program itsself
-      char* x = filePath(args[0]);
-      if (x != NULL) {
-        status = execute(x, args);
-//        status = executeRedirect(args[0], args[1], args[2]);
-      }
+      status = execute(args, numArgs);
     }
+
     free(line);
     free(args);
   } while (status);

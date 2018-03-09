@@ -9,58 +9,45 @@
 #include <errno.h>
 
 #include "execute.h"
+#include "parse.h"
+#include "help.h"
 
 #define TRUE 1
 #define FALSE 0
 
-void setOutput(char* tofile) {
-  close(STDOUT_FILENO);
+void childAction(char** arguments, int numArgs) {
+//  int length_command = 0;
+//  for (int a = 0; a < numArgs; a++) {
+//    if(checkArgumentAtPosition(arguments, ">", a)){
+//      a++;
+//      setOutput(arguments[a]);
+//    } else if (checkArgumentAtPosition(arguments, "<", a)){
+//      a++;
+//      setInput(arguments[a]);
+//    } else {
+//      length_command++;
+//    }
+//  }
 
-  int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-  int oflags = O_WRONLY | O_CREAT | O_TRUNC;
-
-//    fd = open(tofile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-
-  int fd = open(tofile, oflags, mode);
-  if (fd == -1) {
-    printf("%s", strerror(errno));
-    exit(fd);
-  }
-}
-
-void setInput(char* fromfile) {
-  close(STDIN_FILENO);
-
-  int fd = open(fromfile, O_RDONLY);
-  if (fd == -1) {
-    printf("%s", strerror(errno));
-    exit(fd);
-  }
-}
-
-int executeBackground(char **arguments) {
-  pid_t pid, wpid;
-  int status;
-
-  pid = fork();
-  if (pid == 0) {
-    // Child process
-    if (execvp(arguments[0], arguments) == -1) {
-      printf("execute: command %s not found\n", arguments[0]);
-    }
-    exit(EXIT_FAILURE);
-  } else if (pid < 0) {
-    // Error forking
-    perror("lsh");
-  } else {
-    // Parent process does nothing
-    // When the process is done, a signal handler for the signal SIGCHLD is called
-//    do {
-//      wpid = waitpid(pid, &status, WUNTRACED);
-//    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  char** command = getArguments(arguments, 0, numArgs);
+  for (int i = 0; i < numArgs; i++) {
+    printf("%s\n", command[i]);
+    printf("%s\n", arguments[i]);
   }
 
-  return 1;
+//  char** command = arguments;
+//  for (int i = 0; i < numArgs; i++) {
+//    printf("%s, ", command[i]);
+//    printf("%s\n", arguments[i]);
+//  }
+
+
+  char* pathToFile = filePath(command[0]);
+  printf("path == %s\n", pathToFile);
+  if (execv(pathToFile, command) == -1) {
+    printf("PROBLEM: command %s is not executed\n", command[0]);
+  }
+  //free(command);
 }
 
 int executeRedirect(char *command, char *inputFile, char *outputFile) {
@@ -90,16 +77,26 @@ int executeRedirect(char *command, char *inputFile, char *outputFile) {
 }
 
 // Execute executes the command in arguments[0] with the flags arguments[1..n]
-int execute(char* filePath, char **arguments) {
+int execute(char **arguments, int numArgs) {
+  int runInBackGround = checkArgumentAtPosition(arguments, "&", numArgs-1);
+
   pid_t pid, wpid;
   int status;
-  char path[1024];
-  printf("executing: %s\n", filePath);
+
   pid = fork();
   if (pid == 0) {
     // Child process
-    if (execv(filePath, arguments) == -1) {
-      printf("PROBLEM: command %s is not executed\n", arguments[0]);
+    if (runInBackGround) {
+      char** commandStuff;
+      char backGroundOutputFile[10];
+      backGroundOutputFile[0] = '\0';
+      strcat(backGroundOutputFile, "/dev/null");
+//      setOutput(backGroundOutputFile);
+      commandStuff = getArguments(arguments, 0, numArgs-1);
+      childAction(commandStuff, numArgs-1);
+      free(commandStuff);
+    } else {
+      childAction(arguments, numArgs);
     }
     exit(EXIT_FAILURE);
   } else if (pid < 0) {
@@ -107,9 +104,11 @@ int execute(char* filePath, char **arguments) {
     perror("lsh");
   } else {
     // Parent process
-    do {
-      wpid = waitpid(pid, &status, WUNTRACED);
-    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    if (!runInBackGround) {
+      do {
+        wpid = waitpid(pid, &status, WUNTRACED);
+      } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
   }
 
   return 1;

@@ -11,14 +11,16 @@
 // Reads the line of the commandline and returns a string
 char* read_line() {
   int bufferSize = 4;
-  char* buffer = malloc(bufferSize* sizeof(char));
+  char* buffer = malloc(bufferSize * sizeof(char));
   assert(buffer != NULL);
   int c, position = 0;
 
   while (TRUE) {
     c = getchar();
 //    printf("%c\n",c);
-    if (c == '"') continue;
+    if (c == '"') {
+      continue;
+    }
     if (c == '\n' || c == EOF) {
       if (position > bufferSize-1) {
         bufferSize++;
