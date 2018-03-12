@@ -1,5 +1,14 @@
-starting testy
-3
-4
-5
-6
+CMakeLists.txt
+assignment
+helperFuntions.c
+helperFuntions.h
+in
+in2
+main.c
+out
+out2
+parse.c
+parse.h
+reddir
+redirection.c
+ring
